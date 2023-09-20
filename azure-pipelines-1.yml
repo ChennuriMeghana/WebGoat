@@ -4,38 +4,46 @@
 # https://aka.ms/yaml
 
 trigger:
-- main
+- master
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: windows-latest
 
-jobs: 
-# install Node
-- job: NodeJS
+steps:
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
 
-# left out for brevity
-    
-# Run CodeQL
-- job: CodeQL_CLI 
-  displayName: CodeQL Scan
-  dependsOn: NodeJS
-  # Use PowerShell to checkout CodeQL Anywhere repo as a sub module
-  steps:
-  - task: PowerShell@2
-    displayName: 'Checkout codeql-anywhere'
-    inputs:
-      targetType: inline
-      script: |
-        if (Test-Path './.git/modules/codeql-anywhere') {rm -rf './.git/modules/codeql-anywhere'}
-        git submodule add https://github.com/ChennuriMeghana/WebGoat.git
-      pwsh: true
- # Use PowerShell to run the CodeQL scan & return SARIF results to GitHub
-  - task: PowerShell@2
-    displayName: 'Run New-CodeQLScan.ps1'
-    inputs:
-      targetType: filePath
-      filePath: 'codeql-anywhere/resources/scripts/New-CodeQLScan.ps1'
-      pwsh: true
-    env:
-      # GITHUB_TOKEN environment variable must be set to pass in the secret value defined in the $(GHAS_ADO) ADO pipeline variable
-      GITHUB_TOKEN: $(GHAS_ADO)
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+    echo See https://aka.ms/yaml
+  displayName: 'Run a multi-line script'
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      $currentBranch = "$(Build.SourceBranch)".Substring("refs/heads".Length + 1)
+      Write-Host "Current branch to push on GitHub is $currentBranch"
+    #git push https://$(GITHUB_PAT)@github.com/ChennuriMeghana/WebGoat.git "origin/$currentBranch`:$currentBranch" --force
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      Write-Host "downloading Code QL analysis for windows"
+      $ProgressPreference = 'SilentlyContinue'
+      Invoke-WebRequest -uri https://github.com/github/codeql-action/releases/latest/download/codeql-runner-win.exe -OutFile $(Build.SourcesDirectory)\src\codeql-runner-win.exe
+      Write-Host "Code QL analysis for windows downloaded, now we init it"
+      cd $(Build.SourcesDirectory)\src
+      pwd 
+      & ./codeql-runner-win.exe init --github-url https://github.com --repository ChennuriMeghana/WebGoat --github-auth $(ghtoken) --languages javascript
+      
+      cat $(Build.SourcesDirectory)\src\codeql-runner\codeql-env.sh | Invoke-Expression
+      
+      #Perform a standard build of your code
+      dotnet restore
+      dotnet build
+      
+      #perform CodeQL analysis
+      Write-Host "Analyzing with CodeQL"
+      & ./codeql-runner-win.exe analyze --github-url https://github.com --repository ChennuriMeghana/WebGoat --github-auth $(GHAS_ADO) --commit $(Build.SourceVersion) --ref $(Build.SourceBranch)
