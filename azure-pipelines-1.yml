@@ -31,7 +31,7 @@ steps:
     targetType: 'inline'
     script: |
       Write-Host "downloading Code QL analysis for windows"
-      $ProgressPreference = 'SilentlyContinue'https://github.com/github/codeql-action/releases/download/codeql-bundle-v2.14.5/codeql-bundle-win64.tar.gz -OutFile $(Build.SourcesDirectory)\src\codeql-runner-win.exe
+      $ProgressPreference = 'SilentlyContinue'https://github.com/github/codeql-action/releases/download/codeql-bundle-v2.14.5/codeql-bundle-win64.tar.gz' -OutFile $(Build.SourcesDirectory)\src\codeql-runner-win.exe
       Invoke-WebRequest -uri 
       Write-Host "Code QL analysis for windows downloaded, now we init it"
       cd $(Build.SourcesDirectory)\src
