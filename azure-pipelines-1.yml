@@ -1,0 +1,41 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs: 
+# install Node
+- job: NodeJS
+
+# left out for brevity
+    
+# Run CodeQL
+- job: CodeQL_CLI 
+  displayName: CodeQL Scan
+  dependsOn: NodeJS
+  # Use PowerShell to checkout CodeQL Anywhere repo as a sub module
+  steps:
+  - task: PowerShell@2
+    displayName: 'Checkout codeql-anywhere'
+    inputs:
+      targetType: inline
+      script: |
+        if (Test-Path './.git/modules/codeql-anywhere') {rm -rf './.git/modules/codeql-anywhere'}
+        git submodule add https://github.com/ChennuriMeghana/WebGoat.git
+      pwsh: true
+ # Use PowerShell to run the CodeQL scan & return SARIF results to GitHub
+  - task: PowerShell@2
+    displayName: 'Run New-CodeQLScan.ps1'
+    inputs:
+      targetType: filePath
+      filePath: 'codeql-anywhere/resources/scripts/New-CodeQLScan.ps1'
+      pwsh: true
+    env:
+      # GITHUB_TOKEN environment variable must be set to pass in the secret value defined in the $(GHAS_ADO) ADO pipeline variable
+      GITHUB_TOKEN: $(GHAS_ADO)
