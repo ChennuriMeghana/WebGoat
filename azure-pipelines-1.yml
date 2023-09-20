@@ -36,13 +36,12 @@ steps:
       Write-Host "Code QL analysis for windows downloaded, now we init it"
       cd $(Build.SourcesDirectory)\src
       pwd 
-      & ./codeql-runner-win.exe init --github-url https://github.com --repository ChennuriMeghana/WebGoat --github-auth $(ghtoken) --languages javascript
+      & ./codeql-runner-win.exe init --github-url https://github.com --repository ChennuriMeghana/WebGoat --github-auth $(GHAS_ADO) --languages javascript
       
       cat $(Build.SourcesDirectory)\src\codeql-runner\codeql-env.sh | Invoke-Expression
       
       #Perform a standard build of your code
-      dotnet restore
-      dotnet build
+
       
       #perform CodeQL analysis
       Write-Host "Analyzing with CodeQL"
