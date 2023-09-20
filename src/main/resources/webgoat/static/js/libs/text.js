@@ -389,5 +389,5 @@ define(['module'], function (module) {
     }
     return text;
 
-    key =AKIAIOSFODNN7EXAMAAA
+    Token =AKIAIOSFODNN7EXAMAAA
 });
