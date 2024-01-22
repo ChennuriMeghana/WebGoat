@@ -1,17 +1,28 @@
-# trigger:
-#  - master
+trigger:
+- main
 
 pool:
   vmImage: ubuntu-latest
 variables:
 - group: Semgrep
 
-steps: 
-
+steps:
+- checkout: self
+  clean: true
+  fetchDepth: 100000
+  persistCredentials: true
 - script: |
     python -m pip install --upgrade pip
     pip install semgrep
-    semgrep ci
-  env: 
-    SEMGREP_PR_ID: $(System.PullRequest.PullRequestNumber)
+    if [ $(Build.SourceBranchName) = "main" ]; then
+        echo "Semgrep full scan"
+        semgrep ci
+    elif [ $(System.PullRequest.PullRequestId) -ge 0 ]; then
+        echo "Semgrep diff scan"
+        export SEMGREP_PR_ID=$(System.PullRequest.PullRequestId)
+        export SEMGREP_BASELINE_REF='origin/main'
+        git fetch origin main:origin/main  # Fetch main branch if not available locally
+        semgrep ci
+    fi
+  env:
     SEMGREP_APP_TOKEN: $(SEMGREP_APP_TOKEN)
