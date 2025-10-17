@@ -24,23 +24,27 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Build with Maven
+      - name: Build WebGoat
         run: mvn -B clean package -DskipTests
 
-      - name: Install Snyk tools
-        run: |
-          npm install -g snyk snyk-to-sarif
-          snyk --version
+      - name: Install Snyk
+        run: npm install -g snyk snyk-to-sarif
 
-      - name: Run Snyk test and generate JSON report
-        continue-on-error: true
+      - name: Run Snyk test
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
         run: |
-          snyk test --json > snyk.json || true
+          snyk test --all-projects --json-file-output=snyk.json || echo "{}" > snyk.json
+          if [ ! -s snyk.json ]; then
+            echo "{}" > snyk.json
+          fi
+
+      - name: Convert Snyk JSON to SARIF
+        run: |
           snyk-to-sarif snyk.json > snyk.sarif || echo "{}" > snyk.sarif
 
-      - name: Upload results to GitHub Security
+      - name: Upload SARIF to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif
