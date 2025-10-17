@@ -6,12 +6,9 @@ on:
   pull_request:
     branches: [ Devsecops_Demo ]
 
-permissions:
-  contents: read
-  security-events: write
-
 jobs:
   snyk-sca:
+    name: Snyk Open Source Scan
     runs-on: ubuntu-latest
 
     steps:
@@ -24,22 +21,22 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Build WebGoat
+      - name: Build with Maven (optional)
         run: mvn -B clean package -DskipTests
 
       - name: Install Snyk CLI
-        run: npm install -g snyk
+        uses: snyk/actions/setup@master
 
       - name: Install Snyk CLI + HTML converter
         run: npm install -g snyk snyk-to-html
 
-      - name: Run Snyk scan and generate HTML report
+      - name: Run Snyk to check for vulnerabilities
+        continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        continue-on-error: true
         run: |
-          snyk test --all-projects --json > snyk.json || echo "{}" > snyk.json
-          snyk-to-html < snyk.json > snyk-report.html || echo "<html><body>No results</body></html>" > snyk-report.html
+          snyk test --all-projects --json-file-output=snyk-report.json
+          snyk-to-html < snyk-report.json > snyk-report.html || echo "<html><body>No results</body></html>" > snyk-report.html
 
       - name: Upload HTML report as workflow artifact
         uses: actions/upload-artifact@v4
@@ -48,6 +45,8 @@ jobs:
           path: snyk-report.html
 
       - name: Monitor project in Snyk
+        if: github.ref == 'refs/heads/main'
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: snyk monitor --all-projects
+
