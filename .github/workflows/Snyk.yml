@@ -27,27 +27,25 @@ jobs:
       - name: Build WebGoat
         run: mvn -B clean package -DskipTests
 
-      - name: Install Snyk
-        run: npm install -g snyk snyk-to-sarif
+      - name: Install Snyk CLI
+        run: npm install -g snyk
 
-      - name: Run Snyk test
+      - name: Install Snyk CLI + HTML converter
+        run: npm install -g snyk snyk-to-html
+
+      - name: Run Snyk scan and generate HTML report
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         continue-on-error: true
         run: |
-          snyk test --all-projects --json-file-output=snyk.json || echo "{}" > snyk.json
-          if [ ! -s snyk.json ]; then
-            echo "{}" > snyk.json
-          fi
+          snyk test --all-projects --json > snyk.json || echo "{}" > snyk.json
+          snyk-to-html snyk.json -o snyk-report.html || echo "<html><body>No results</body></html>" > snyk-report.html
 
-      - name: Convert Snyk JSON to SARIF
-        run: |
-          snyk-to-sarif snyk.json > snyk.sarif || echo "{}" > snyk.sarif
-
-      - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
+      - name: Upload HTML report as workflow artifact
+        uses: actions/upload-artifact@v3
         with:
-          sarif_file: snyk.sarif
+          name: snyk-html-report
+          path: snyk-report.html
 
       - name: Monitor project in Snyk
         if: github.ref == 'refs/heads/main'
