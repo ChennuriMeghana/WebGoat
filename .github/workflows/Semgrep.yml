@@ -1,7 +1,7 @@
 name: Semgrep
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "Devsecops_Demo" ]
   pull_request: {}
 jobs:
   semgrep:
@@ -15,12 +15,10 @@ jobs:
       image: returntocorp/semgrep
     steps:
       # Fetch project source with GitHub Actions Checkout.
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       # Run the "semgrep ci" command on the command line of the docker image.
       - name: Run SAST scan using Semgrep 
         run: semgrep ci
         continue-on-error: true
         env:
-           # Add the rules that Semgrep uses by setting the SEMGREP_RULES environment variable. 
-          # SEMGREP_RULES: p/default # more at semgrep.dev/explore
            SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }} 
