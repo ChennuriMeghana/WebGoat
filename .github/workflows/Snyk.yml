@@ -31,18 +31,13 @@ jobs:
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: snyk test --all-projects
+        run: snyk test --all-projects --json-file-output=snyk-report.json
 
       - name: Monitor project in Snyk
         if: github.ref == 'refs/heads/main'
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: snyk monitor --all-projects
-        
-      - name: Snyk scan with SARIF report
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: snyk test --all-projects --json-file-output=snyk-report.json
 
       - name: Convert Snyk JSON to SARIF
         run: snyk-to-sarif snyk-report.json > snyk-report.sarif
