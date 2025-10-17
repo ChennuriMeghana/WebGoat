@@ -1,0 +1,52 @@
+name: Snyk SCA Scan
+
+on:
+  push:
+    branches: [ Devsecops_Demo ]
+  pull_request:
+    branches: [ Devsecops_Demo ]
+
+jobs:
+  snyk-sca:
+    name: Snyk Open Source Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build with Maven (optional)
+        run: mvn -B clean package -DskipTests
+
+      - name: Install Snyk CLI
+        uses: snyk/actions/setup@v3
+
+      - name: Run Snyk to check for vulnerabilities
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk test --all-projects
+
+      - name: Monitor project in Snyk
+        if: github.ref == 'refs/heads/main'
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk monitor --all-projects
+        
+      - name: Snyk scan with SARIF report
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk test --all-projects --json-file-output=snyk-report.json
+
+      - name: Convert Snyk JSON to SARIF
+        run: snyk-to-sarif snyk-report.json > snyk-report.sarif
+
+      - name: Upload SARIF to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk-report.sarif
