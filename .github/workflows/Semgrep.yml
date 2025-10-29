@@ -1,5 +1,6 @@
 name: Semgrep
 on:
+  workflow_dispatch: {}
   push:
     branches: [ "Devsecops_Demo" ]
   pull_request: {}
