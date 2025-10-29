@@ -14,15 +14,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-
-      - name: Build with Maven
-        run: mvn -B clean package -DskipTests
-
       - name: Install Snyk CLI + HTML converter
         run: npm install -g snyk snyk-to-html --force
         
