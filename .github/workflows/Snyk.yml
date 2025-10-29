@@ -28,8 +28,8 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
-          snyk test --all-projects --json > snyk-report.json || echo "{}" > snyk-report.json
-          snyk-to-html < snyk-report.json > snyk-report.html || echo "<html><body>No results</body></html>" > snyk-report.html
+          snyk test --file=pom.xml --json | tee snyk-report.json
+          snyk-to-html < snyk-report.json > snyk-report.html
 
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
