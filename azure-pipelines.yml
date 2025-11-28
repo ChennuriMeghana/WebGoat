@@ -3,22 +3,13 @@ trigger:
 
 pool:
   vmImage: ubuntu-latest
-variables:
-- group: Semgrep
 
 steps:
-- checkout: self
-  clean: true
-  fetchDepth: 50
-- script: |
-    echo "Pull Request Scan from branch: $(Build.SourceBranchName)"
-    git config --global user.email $GH_EMAIL
-    git config --global user.name $GH_USER
-    git config --global credential.helper '!f() { echo "username=$(GH_USER)"; echo "password=$(GITHUB_PAT)"; }; f'
-    git fetch origin main:origin/main
-    python -m pip install --upgrade pip
-    pip install semgrep
-    semgrep ci
-  env:
-   SEMGREP_PR_ID: $(System.PullRequest.PullRequestNumber)
-   SEMGREP_BASELINE_REF: 'origin/main'
+  - 
+- task: SnykSecurityScan@1
+  inputs:
+    serviceConnectionEndpoint: 'SnykToken'
+    testType: 'app'
+    monitorWhen: 'always'
+    failOnIssues: true
+    failOnThreshold: 'critical'
