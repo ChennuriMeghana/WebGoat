@@ -5,8 +5,8 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-  - 
 - task: SnykSecurityScan@1
+  displayName: 'Snyk: test & monitor'
   inputs:
     serviceConnectionEndpoint: 'SnykToken'
     testType: 'app'
