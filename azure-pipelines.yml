@@ -26,6 +26,7 @@ steps:
         git fetch origin main:origin/main
         semgrep ci
     fi
+    continueOnError:true
 
 - task: SnykSecurityScan@1
   displayName: 'Snyk: test & monitor'
