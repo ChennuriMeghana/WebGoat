@@ -1,25 +1,21 @@
 name: Semgrep
+
 on:
   workflow_dispatch: {}
   push:
     branches: [ "Devsecops_Demo" ]
   pull_request: {}
+
 jobs:
   semgrep:
-    # User-definable name of this GitHub Actions job:
-    name: Scan
-    # If you are self-hosting, change the following `runs-on` value: 
     runs-on: ubuntu-latest
 
     container:
-      # A Docker image with Semgrep installed. Do not change this.
       image: returntocorp/semgrep
+
     steps:
-      # Fetch project source with GitHub Actions Checkout.
       - uses: actions/checkout@v4
-      # Run the "semgrep ci" command on the command line of the docker image.
-      - name: Run SAST scan using Semgrep 
-        run: semgrep ci --include=src/**
-        continue-on-error: true
-        env:
-           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }} 
+
+      - name: Run Semgrep SAST
+        run: |
+          semgrep scan --severity ERROR --error --include=src/**
