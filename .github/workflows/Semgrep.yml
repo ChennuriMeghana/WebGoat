@@ -1,21 +1,23 @@
-name: Semgrep
+name: Semgrep Security Scan
 
 on:
-  workflow_dispatch: {}
+  pull_request:
   push:
-    branches: [ "Devsecops_Demo" ]
-  pull_request: {}
+    branches: [ Devsecops_Demo ]
 
 jobs:
   semgrep:
     runs-on: ubuntu-latest
-
-    container:
-      image: returntocorp/semgrep
+    permissions:
+      contents: read
+      security-events: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Run Semgrep SAST
-        run: |
-          semgrep scan --severity ERROR --error --include=src/**
+      - name: Run Semgrep
+        uses: semgrep/semgrep-action@v1
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+          SEMGREP_SEVERITY: ERROR
